@@ -1,11 +1,13 @@
 import { useState } from "react";
 import KakaoLogin from "@/assets/imgs/Kakaologin.png";
-// import GoogleLogin from "@/assets/imgs/GoogleLogin.png";
+import GoogleLogin from "@/assets/imgs/GoogleLogin.png";
 import { LiaEyeSolid, LiaEyeSlashSolid } from "react-icons/lia";
 
 export default function LoginBox() {
   const [values, setValues] = useState(["", ""]);
   const [show, setShow] = useState(false);
+  const VITE_PRODUCTION_API_BASE_URL = import.meta.env
+    .VITE_PRODUCTION_API_BASE_URL;
 
   const handleChange = (idx: number, value: string) => {
     const updatedValues = [...values];
@@ -13,11 +15,16 @@ export default function LoginBox() {
     setValues(updatedValues);
   };
 
-  const handleLogin = () => {
+  const handleKakaoLogin = () => {
     const url = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${
       import.meta.env.VITE_KAKAO_REST_API_KEY
     }&redirect_uri=${import.meta.env.VITE_LOGIN_REDIRECT_URL}`;
 
+    window.location.href = url;
+  };
+
+  const handleGoogleLogin = async () => {
+    const url = `${VITE_PRODUCTION_API_BASE_URL}/auth/google`;
     window.location.href = url;
   };
 
@@ -59,14 +66,14 @@ export default function LoginBox() {
         src={KakaoLogin}
         alt="kakaoLogin"
         className="w-full h-16 cursor-pointer"
-        onClick={handleLogin}
+        onClick={handleKakaoLogin}
       />
-      {/* <img
+      <img
         src={GoogleLogin}
         alt="googleLogin"
         className="w-full h-20 cursor-pointer"
-        onClick={handleLogin()}
-      /> */}
+        onClick={() => handleGoogleLogin()}
+      />
 
       <p className="text-center underline cursor-pointer text-subDarkColor">
         회원가입

@@ -24,40 +24,17 @@ const MyPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const TOKEN = localStorage.getItem("token");
+        const token = await axios.get(
+          `${import.meta.env.VITE_PRODUCTION_API_BASE_URL}/auth/token`,
+          {
+            withCredentials: true,
+          }
+        );
 
-        if (!TOKEN) {
+        if (!token.data) {
           navigate("/login");
           return;
         }
-
-        const tokenInfoUrl = "https://kapi.kakao.com/v1/user/access_token_info";
-        await axios.get(tokenInfoUrl, {
-          headers: {
-            Authorization: `Bearer ${TOKEN}`,
-          },
-        });
-
-        const userInfoUrl = "https://kapi.kakao.com/v2/user/me";
-        const userInfoResponse = await axios.get(userInfoUrl, {
-          headers: {
-            Authorization: `Bearer ${TOKEN}`,
-            "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-          },
-        });
-
-        setUserInfo({
-          ...userInfo,
-          id: userInfoResponse.data.id,
-          name: userInfoResponse.data.properties.nickname,
-        });
-
-        const encodedLikes = encodeURIComponent(JSON.stringify(userInfo.likes));
-        const likesUrl = `${
-          import.meta.env.VITE_PRODUCTION_API_BASE_URL
-        }/likes?storeId=${encodedLikes}`;
-        const likesResponse = await axios.get(likesUrl);
-        setMyShopData(likesResponse.data);
       } catch (error) {
         console.error(error);
         navigate("/login");
@@ -67,27 +44,63 @@ const MyPage = () => {
     fetchData();
   }, [navigate, userInfo.likes, setUserInfo]);
 
-  const logout = async () => {
-    const TOKEN = localStorage.getItem("token");
-    const url = `https://kapi.kakao.com/v1/user/logout`;
-    axios
-      .post(
-        url,
-        {},
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-            Authorization: `Bearer ${TOKEN}`,
-          },
+  useEffect(() => {
+    const putGoogleData = async () => {
+      const query = new URLSearchParams(location.search);
+      const profileData = query.get("profile");
+
+      if (profileData) {
+        try {
+          const userProfile = JSON.parse(decodeURIComponent(profileData));
+          setUserInfo({
+            ...userInfo,
+            id: userProfile.id,
+            name: userProfile.name,
+            provider: "google",
+          });
+          console.log(userInfo);
+        } catch (error) {
+          console.error("프로필 데이터를 파싱하는 중 오류 발생:", error);
         }
-      )
-      .then(() => {
-        localStorage.removeItem("token");
+      }
+    };
+
+    putGoogleData();
+  }, []);
+
+  const logout = async () => {
+    try {
+      const token = await axios.get(
+        `${import.meta.env.VITE_PRODUCTION_API_BASE_URL}/auth/token`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (token.data) {
+        if (userInfo.provider === "kakao") {
+          await axios.get(
+            `${
+              import.meta.env.VITE_PRODUCTION_API_BASE_URL
+            }/users/kakao/logout`,
+            {
+              withCredentials: true,
+            }
+          );
+        } else if (userInfo.provider === "google") {
+          await axios.get(
+            `${import.meta.env.VITE_PRODUCTION_API_BASE_URL}/auth/logout`,
+            {
+              withCredentials: true,
+            }
+          );
+        }
+
         navigate("/login");
-      })
-      .catch((error) => {
-        console.error("카카오 로그아웃 실패", error);
-      });
+      }
+    } catch (err) {
+      console.error("로그아웃 실패", err);
+    }
   };
 
   const moveAnalyze = () => {

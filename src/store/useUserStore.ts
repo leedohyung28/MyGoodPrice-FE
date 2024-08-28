@@ -12,7 +12,7 @@ const useUserStore = create<userState>((set) => ({
   userInfo: {
     id: null,
     name: "",
-    token: "",
+    provider: "",
     likes: JSON.parse(localStorage.getItem("likes") || "[]") as string[],
     location: {
       latitude: "",

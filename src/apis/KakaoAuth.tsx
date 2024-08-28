@@ -1,35 +1,46 @@
+import useUserStore from "@/store/useUserStore";
 import axios from "axios";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 const KakaoAuth = () => {
   const navigate = useNavigate();
-  const GRANT_TYPE = "authorization_code";
-  const CODE = new URLSearchParams(window.location.search).get("code");
+  const hasPageBeenRendered = useRef({ effect: false });
+  const { setUserInfo, userInfo } = useUserStore();
+
   useEffect(() => {
-    axios
-      .post(
-        `https://kauth.kakao.com/oauth/token`,
-        {
-          grant_type: GRANT_TYPE,
-          client_id: import.meta.env.VITE_KAKAO_REST_API_KEY,
-          redirect_uri: import.meta.env.VITE_LOGIN_REDIRECT_URL,
-          code: CODE,
-        },
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-          },
+    const fetchCode = async () => {
+      const CODE = new URLSearchParams(window.location.search).get("code");
+
+      if (CODE) {
+        try {
+          const user = await axios.post(
+            `${import.meta.env.VITE_PRODUCTION_API_BASE_URL}/users/kakao`,
+            {
+              code: CODE,
+            },
+            {
+              withCredentials: true,
+            }
+          );
+          setUserInfo({
+            ...userInfo,
+            id: user.data.id,
+            name: user.data.name,
+            provider: "kakao",
+          });
+          navigate("/mypage");
+        } catch (error) {
+          console.error("Error fetching cookie:", error);
         }
-      )
-      .then((res) => {
-        localStorage.setItem("token", res.data.access_token);
-        navigate("/mypage");
-      })
-      .catch((error) => {
-        console.log("error 발생", error);
-      });
-  }, [CODE, GRANT_TYPE, navigate]);
+      }
+    };
+
+    if (!hasPageBeenRendered.current["effect"]) {
+      fetchCode();
+      hasPageBeenRendered.current["effect"] = true;
+    }
+  }, []);
 
   return null;
 };

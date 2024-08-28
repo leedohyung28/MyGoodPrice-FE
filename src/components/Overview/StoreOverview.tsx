@@ -1,4 +1,4 @@
-import { useState, Fragment, MouseEvent } from "react";
+import { useState, Fragment, MouseEvent, useEffect } from "react";
 import { FcLike, FcLikePlaceholder } from "react-icons/fc";
 import { PiCaretUpDownLight } from "react-icons/pi";
 import { MdKeyboardDoubleArrowDown } from "react-icons/md";
@@ -43,28 +43,92 @@ export default function StoreOverview({
   const data = pageType === "main" ? currentShopData : myShopData;
   const setData = pageType === "main" ? setCurrentShopData : setMyShopData;
 
+  useEffect(() => {
+    const fetchKakaoUserInfo = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_PRODUCTION_API_BASE_URL}/likes/my/kakao`,
+          { withCredentials: true }
+        );
+        const likes = response.data.map((item: any) => item.id);
+
+        setUserInfo({ likes });
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    const fetchGoogleUserInfo = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_PRODUCTION_API_BASE_URL}/likes/my/google`,
+          { withCredentials: true }
+        );
+        const likes = response.data.map((item: any) => item.id);
+
+        setUserInfo({ likes });
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    if (userInfo.provider === "kakao") {
+      console.log("Kakao");
+      fetchKakaoUserInfo();
+    } else if (userInfo.provider === "google") {
+      console.log("Google");
+      fetchGoogleUserInfo();
+    }
+  }, []);
+
   const toggleLikes = async (e: MouseEvent, id: string) => {
     e.stopPropagation();
     const url = `${import.meta.env.VITE_PRODUCTION_API_BASE_URL}/likes`;
-    let storedLikes = localStorage.getItem("likes");
-    let likesArray: string[] = storedLikes ? JSON.parse(storedLikes) : [];
 
-    if (userInfo.likes.includes(id)) {
-      await axios.delete(url, { data: { storeId: id }, withCredentials: true });
-      const updatedLikes = userInfo.likes.filter((likeId) => likeId !== id);
-      setUserInfo({ likes: updatedLikes });
-      toggleLikeShop(id, true);
+    if (userInfo.provider === "kakao") {
+      if (userInfo.likes.includes(id)) {
+        await axios.delete(`${url}/kakao`, {
+          data: { storeId: id },
+          withCredentials: true,
+        });
 
-      likesArray = likesArray.filter((likeId) => likeId !== id);
-      localStorage.setItem("likes", JSON.stringify(likesArray));
-    } else {
-      await axios.post(url, { storeId: id });
-      toggleLikeShop(id, false);
-      const updatedLikes = [...userInfo.likes, id];
-      setUserInfo({ likes: updatedLikes });
+        const updatedLikes = userInfo.likes.filter((likeId) => likeId !== id);
+        setUserInfo({ likes: updatedLikes });
 
-      likesArray.push(id);
-      localStorage.setItem("likes", JSON.stringify(likesArray));
+        toggleLikeShop(id, true);
+      } else {
+        await axios.post(
+          `${url}/kakao`,
+          { storeId: id },
+          { withCredentials: true }
+        );
+        toggleLikeShop(id, false);
+
+        const updatedLikes = [...userInfo.likes, id];
+        setUserInfo({ likes: updatedLikes });
+      }
+    } else if (userInfo.provider === "google") {
+      if (userInfo.likes.includes(id)) {
+        await axios.delete(`${url}/google`, {
+          data: { storeId: id },
+          withCredentials: true,
+        });
+
+        const updatedLikes = userInfo.likes.filter((likeId) => likeId !== id);
+        setUserInfo({ likes: updatedLikes });
+
+        toggleLikeShop(id, true);
+      } else {
+        await axios.post(
+          `${url}/google`,
+          { storeId: id },
+          { withCredentials: true }
+        );
+        toggleLikeShop(id, false);
+
+        const updatedLikes = [...userInfo.likes, id];
+        setUserInfo({ likes: updatedLikes });
+      }
     }
   };
 

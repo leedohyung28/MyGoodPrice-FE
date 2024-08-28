@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { PieChartType, TichChartType } from "@/types";
 import { Bar } from "react-chartjs-2";
+import useUserStore from "@/store/useUserStore";
 
 // Chart.js 구성 요소 등록
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -31,6 +32,7 @@ const LikeAnalyze = () => {
   const [pieData, setPieData] = useState<PieChartType[]>([]);
   const [tickData, setTickData] = useState<TichChartType[]>([]);
   const [likes, setLikes] = useState<string[]>([]);
+  const { userInfo } = useUserStore();
 
   //카테고리 퍼센트
   const pieChart = {
@@ -102,9 +104,35 @@ const LikeAnalyze = () => {
   };
 
   useEffect(() => {
-    const storedLikes = localStorage.getItem("likes");
-    if (storedLikes) {
-      setLikes(JSON.parse(storedLikes));
+    const fetchKakaoUserInfo = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_PRODUCTION_API_BASE_URL}/likes/my/kakao`,
+          { withCredentials: true }
+        );
+        const likes = response.data.map((item: any) => item.id);
+        setLikes(likes);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    const fetchGoogleUserInfo = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_PRODUCTION_API_BASE_URL}/likes/my/google`,
+          { withCredentials: true }
+        );
+        const likes = response.data.map((item: any) => item.id);
+        setLikes(likes);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    if (userInfo.provider === "kakao") {
+      fetchKakaoUserInfo();
+    } else if (userInfo.provider === "google") {
+      fetchGoogleUserInfo();
     }
   }, []);
 

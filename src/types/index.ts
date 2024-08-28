@@ -1,7 +1,7 @@
 export type UserTypes = {
   id: number | null;
   name: string;
-  token: string;
+  provider: string;
   likes: string[];
   location: {
     latitude: string;

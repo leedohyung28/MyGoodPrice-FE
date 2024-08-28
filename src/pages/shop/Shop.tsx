@@ -41,6 +41,21 @@ export default function ShopPage() {
     fetchShopData();
   }, [searchParams, setLoading]);
 
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_PRODUCTION_API_BASE_URL}/likes/my/kakao`,
+          { withCredentials: true }
+        );
+        setUserInfo({ likes: response.data });
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchUserInfo();
+  }, []);
+
   const toggleLikes = async (e: MouseEvent, id: string) => {
     e.stopPropagation();
     const url = `${import.meta.env.VITE_PRODUCTION_API_BASE_URL}/likes`;
