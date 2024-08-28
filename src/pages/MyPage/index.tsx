@@ -10,13 +10,11 @@ import SaveAddress from "@/components/AddressBox/SaveAddress";
 import useGeoLocation from "@/store/useGeoLocationStore";
 import { CiCircleCheck } from "react-icons/ci";
 import useUserStore from "@/store/useUserStore";
-import useShopStore from "@/store/useShopStore";
 
 const MyPage = () => {
   const navigate = useNavigate();
   const [address, setAddress] = useState<string>("");
   const [showList, setShowList] = useState(true);
-  const { setMyShopData } = useShopStore();
   const { setUserInfo, userInfo } = useUserStore();
 
   const { latitude, longitude, setGeoLocation } = useGeoLocation();
