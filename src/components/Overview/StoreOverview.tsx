@@ -73,10 +73,8 @@ export default function StoreOverview({
     };
 
     if (userInfo.provider === "kakao") {
-      console.log("Kakao");
       fetchKakaoUserInfo();
     } else if (userInfo.provider === "google") {
-      console.log("Google");
       fetchGoogleUserInfo();
     }
   }, []);

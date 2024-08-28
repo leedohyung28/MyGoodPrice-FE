@@ -56,7 +56,6 @@ const MyPage = () => {
             name: userProfile.name,
             provider: "google",
           });
-          console.log(userInfo);
         } catch (error) {
           console.error("프로필 데이터를 파싱하는 중 오류 발생:", error);
         }
