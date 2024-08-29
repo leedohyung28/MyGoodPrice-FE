@@ -2,6 +2,8 @@ import { useState } from "react";
 import KakaoLogin from "@/assets/imgs/Kakaologin.png";
 import GoogleLogin from "@/assets/imgs/GoogleLogin.png";
 import { LiaEyeSolid, LiaEyeSlashSolid } from "react-icons/lia";
+import { signInWithGoogle } from "@/firebase";
+import { GoogleAuthProvider } from "firebase/auth";
 
 export default function LoginBox() {
   const [values, setValues] = useState(["", ""]);
@@ -23,9 +25,26 @@ export default function LoginBox() {
     window.location.href = url;
   };
 
-  const handleGoogleLogin = async () => {
-    const url = `${VITE_PRODUCTION_API_BASE_URL}/auth/google`;
-    window.location.href = url;
+  const handleGoogleLogin = (e: any) => {
+    // const url = `${VITE_PRODUCTION_API_BASE_URL}/auth/google`;
+    // window.location.href = url;
+    e.preventDefault();
+    signInWithGoogle()
+      .then((res) => {
+        const credential = GoogleAuthProvider.credentialFromResult(res);
+        const token = credential?.accessToken;
+        const userName = res.user.displayName;
+        const userEmail = res.user.email;
+        const userId = res.user.uid;
+
+        console.log("이름:", userName);
+        console.log("이메일:", userEmail);
+        console.log("UID:", userId);
+        console.log("토큰:", token);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   return (
@@ -72,7 +91,7 @@ export default function LoginBox() {
         src={GoogleLogin}
         alt="googleLogin"
         className="w-full h-20 cursor-pointer"
-        onClick={() => handleGoogleLogin()}
+        onClick={handleGoogleLogin}
       />
 
       <p className="text-center underline cursor-pointer text-subDarkColor">
