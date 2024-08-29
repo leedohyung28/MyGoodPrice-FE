@@ -8,8 +8,8 @@ import { GoogleAuthProvider } from "firebase/auth";
 export default function LoginBox() {
   const [values, setValues] = useState(["", ""]);
   const [show, setShow] = useState(false);
-  const VITE_PRODUCTION_API_BASE_URL = import.meta.env
-    .VITE_PRODUCTION_API_BASE_URL;
+  // const VITE_PRODUCTION_API_BASE_URL = import.meta.env
+  //   .VITE_PRODUCTION_API_BASE_URL;
 
   const handleChange = (idx: number, value: string) => {
     const updatedValues = [...values];
