@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import KakaoLogin from "@/assets/imgs/Kakaologin.png";
 import GoogleLogin from "@/assets/imgs/GoogleLogin.png";
 import { LiaEyeSolid, LiaEyeSlashSolid } from "react-icons/lia";
@@ -10,7 +10,7 @@ import useUserStore from "@/store/useUserStore";
 export default function LoginBox() {
   const [values, setValues] = useState(["", ""]);
   const [show, setShow] = useState(false);
-  const { setUserInfo, userInfo } = useUserStore();
+  const { setUserInfo } = useUserStore();
   const VITE_PRODUCTION_API_BASE_URL = import.meta.env
     .VITE_PRODUCTION_API_BASE_URL;
 
