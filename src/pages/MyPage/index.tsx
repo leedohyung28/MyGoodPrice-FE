@@ -10,6 +10,7 @@ import SaveAddress from "@/components/AddressBox/SaveAddress";
 import useGeoLocation from "@/store/useGeoLocationStore";
 import { CiCircleCheck } from "react-icons/ci";
 import useUserStore from "@/store/useUserStore";
+import { getAuth, signOut } from "firebase/auth";
 
 const MyPage = () => {
   const navigate = useNavigate();
@@ -43,27 +44,11 @@ const MyPage = () => {
   }, [navigate, userInfo.likes, setUserInfo]);
 
   useEffect(() => {
-    const putGoogleData = async () => {
-      const query = new URLSearchParams(location.search);
-      const profileData = query.get("profile");
-
-      if (profileData) {
-        try {
-          const userProfile = JSON.parse(decodeURIComponent(profileData));
-          setUserInfo({
-            ...userInfo,
-            id: userProfile.id,
-            name: userProfile.name,
-            provider: "google",
-          });
-        } catch (error) {
-          console.error("프로필 데이터를 파싱하는 중 오류 발생:", error);
-        }
-      }
-    };
-
-    putGoogleData();
-  }, []);
+    const storedUserInfo = localStorage.getItem("userInfo");
+    if (storedUserInfo) {
+      setUserInfo(JSON.parse(storedUserInfo));
+    }
+  }, [setUserInfo]);
 
   const logout = async () => {
     try {
@@ -84,13 +69,33 @@ const MyPage = () => {
               withCredentials: true,
             }
           );
+          setUserInfo({
+            ...userInfo,
+            id: "",
+            name: "",
+            provider: "",
+            likes: [],
+          });
         } else if (userInfo.provider === "google") {
-          await axios.get(
-            `${import.meta.env.VITE_PRODUCTION_API_BASE_URL}/auth/logout`,
-            {
-              withCredentials: true,
-            }
-          );
+          signOut(getAuth())
+            .then(() => {
+              axios.get(
+                `${import.meta.env.VITE_PRODUCTION_API_BASE_URL}/auth/logout`,
+                {
+                  withCredentials: true,
+                }
+              );
+              setUserInfo({
+                ...userInfo,
+                id: "",
+                name: "",
+                provider: "",
+                likes: [],
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+            });
         }
 
         navigate("/login");

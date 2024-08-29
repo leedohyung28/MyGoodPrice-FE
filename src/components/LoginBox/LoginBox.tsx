@@ -1,15 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import KakaoLogin from "@/assets/imgs/Kakaologin.png";
 import GoogleLogin from "@/assets/imgs/GoogleLogin.png";
 import { LiaEyeSolid, LiaEyeSlashSolid } from "react-icons/lia";
 import { signInWithGoogle } from "@/firebase";
 import { GoogleAuthProvider } from "firebase/auth";
+import axios from "axios";
+import useUserStore from "@/store/useUserStore";
 
 export default function LoginBox() {
   const [values, setValues] = useState(["", ""]);
   const [show, setShow] = useState(false);
-  // const VITE_PRODUCTION_API_BASE_URL = import.meta.env
-  //   .VITE_PRODUCTION_API_BASE_URL;
+  const { setUserInfo, userInfo } = useUserStore();
+  const VITE_PRODUCTION_API_BASE_URL = import.meta.env
+    .VITE_PRODUCTION_API_BASE_URL;
 
   const handleChange = (idx: number, value: string) => {
     const updatedValues = [...values];
@@ -26,21 +29,43 @@ export default function LoginBox() {
   };
 
   const handleGoogleLogin = (e: any) => {
-    // const url = `${VITE_PRODUCTION_API_BASE_URL}/auth/google`;
-    // window.location.href = url;
+    const url = `${VITE_PRODUCTION_API_BASE_URL}/users/google`;
     e.preventDefault();
     signInWithGoogle()
       .then((res) => {
         const credential = GoogleAuthProvider.credentialFromResult(res);
-        const token = credential?.accessToken;
+        const accessToken = credential?.accessToken;
+        const refreshToken = credential?.idToken;
         const userName = res.user.displayName;
         const userEmail = res.user.email;
-        const userId = res.user.uid;
 
-        console.log("이름:", userName);
-        console.log("이메일:", userEmail);
-        console.log("UID:", userId);
-        console.log("토큰:", token);
+        const data = {
+          id: userEmail,
+          name: userName,
+          email: userEmail,
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        };
+
+        axios
+          .post(url, data, {
+            withCredentials: true,
+          })
+          .then(() => {
+            if (userName) {
+              const userInfo = {
+                id: userEmail,
+                name: userName,
+                provider: "google",
+              };
+              setUserInfo(userInfo);
+              localStorage.setItem("userInfo", JSON.stringify(userInfo));
+              window.location.href = "/mypage";
+            }
+          })
+          .catch((error) => {
+            console.error("서버 오류:", error);
+          });
       })
       .catch((err) => {
         console.error(err);
